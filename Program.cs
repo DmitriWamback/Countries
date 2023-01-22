@@ -105,8 +105,7 @@ class Polygon {
     public void Render() {
 
         GL.BindVertexArray(vertexArrayObject);
-        GL.DrawArrays(PrimitiveType.Lines, 0, CombinedLongLat.Length / 3);
-        GL.DrawArrays(PrimitiveType.Points, 0, CombinedLongLat.Length / 3);
+        GL.DrawArrays(PrimitiveType.LineLoop, 0, CombinedLongLat.Length / 3);
     }
 }
 
@@ -149,6 +148,11 @@ class Shader {
         int location = GL.GetUniformLocation(program, name);
         GL.UniformMatrix4(location, false, ref matr);
     }
+
+    public void SetVector3(string name, Vector3 a) {
+        int location = GL.GetUniformLocation(program, name);
+        GL.Uniform3(location, a.X, a.Y, a.Z);
+    }
 }
 
 /*
@@ -166,6 +170,7 @@ class DevelopmentWindow: GameWindow {
     public static Dictionary<string, JsonElement> CountryGeometry = new Dictionary<string, JsonElement>();
     public static Dictionary<string, string> CountryPolygonType = new Dictionary<string, string>();
     public List<string> debugCountryNames = new List<string>();
+    float globeZoom = 2.24f;
 
     Polygon[] countryPolygons = new Polygon[1];
 
@@ -203,12 +208,18 @@ class DevelopmentWindow: GameWindow {
             CountryPolygonType[countryName.ToString()] = geometryType.ToString();
         }
 
-        projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(110), 1, 0.1f, 1000);
+        projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(110), 1, 0.01f, 1000f);
         lookAt = Matrix4.LookAt(currentCountryPosition, new Vector3(0), Vector3.UnitY);
 
-        countryPolygons = Polygon.LoadCountry("United States of America");
-        foreach(Polygon p in countryPolygons) {
-            _countryPolygons.Add(p);
+        string[] countriesToLoad = new string[] {
+            "India"
+        };
+
+        foreach (string str in countriesToLoad) {
+            countryPolygons = Polygon.LoadCountry(str);
+            foreach(Polygon p in countryPolygons) {
+                _countryPolygons.Add(p);
+            }
         }
         countryShader = new Shader();
     }
@@ -240,14 +251,21 @@ class DevelopmentWindow: GameWindow {
         base.OnMouseMove(e);
 
         if (this.IsMouseButtonDown(MouseButton.Right)) {
-            rotation.X -= this.MouseState.Delta.X * 0.01f;
-            rotation.Y += this.MouseState.Delta.Y * 0.01f;
+            rotation.X -= this.MouseState.Delta.X * 0.001f * globeZoom;
+            rotation.Y += this.MouseState.Delta.Y * 0.001f * globeZoom;
 
             if (rotation.Y > 1.54362f) rotation.Y = 1.54362f;
             if (rotation.Y < -1.54362f) rotation.Y = -1.54362f;
 
-            currentCountryPosition = new Vector3(MathF.Sin(rotation.X) * MathF.Cos(rotation.Y) * 2, MathF.Sin(rotation.Y) * 2, MathF.Cos(rotation.X) * MathF.Cos(rotation.Y) * 2);
+            currentCountryPosition = new Vector3(MathF.Sin(rotation.X) * MathF.Cos(rotation.Y) * globeZoom, MathF.Sin(rotation.Y) * globeZoom, MathF.Cos(rotation.X) * MathF.Cos(rotation.Y) * globeZoom);
         }
+    }
+    protected override void OnMouseWheel(MouseWheelEventArgs e)
+    {
+        base.OnMouseWheel(e);
+        globeZoom += e.OffsetY * 0.01f;
+        if (globeZoom < 1.05f) globeZoom = 1.05f;
+        currentCountryPosition = new Vector3(MathF.Sin(rotation.X) * MathF.Cos(rotation.Y) * globeZoom, MathF.Sin(rotation.Y) * globeZoom, MathF.Cos(rotation.X) * MathF.Cos(rotation.Y) * globeZoom);
     }
 
     /*
@@ -264,6 +282,8 @@ class DevelopmentWindow: GameWindow {
         countryShader.Use();
         countryShader.SetMatrix4("projection", projection);
         countryShader.SetMatrix4("lookAt", lookAt);
+        countryShader.SetMatrix4("rotation", rotationMatrix);
+        countryShader.SetVector3("cameraPosition", currentCountryPosition);
 
         foreach (Polygon polygon in _countryPolygons) {
             polygon.Render();
