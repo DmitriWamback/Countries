@@ -1,59 +1,66 @@
-import matplotlib.pyplot as plt
-import random
-import country as c
+import json
+import math
 
-# Geojson download: https://datahub.io/core/geo-countries#data-cli
+with open('countries.geojson', 'r+') as file:
 
-content = None
+    content = file.read()
+    content = json.loads(content)
+    
+length = len(content['features'])
+fullGeometryData = {}
+fullPolygonData  = {}
 
-country_range = 1
-chosen_countries = []
+for i in range(length):
+    countryName     = content['features'][i]['properties']['ADMIN']
+    countryGeometry = content['features'][i]['geometry']
+    polygonType = content['features'][i]['geometry']['type']
 
-countries_to_plot = [
-    'Saudi Arabia'
-]
+    fullGeometryData[countryName] = countryGeometry
+    fullPolygonData[countryName]  = polygonType
 
-for i in range(100):
+countries = list(fullGeometryData.keys())
 
-    ax = plt.figure().add_subplot(projection='3d')
-    random_country = c.countries[random.randint(0, len(c.fullGeometryData.keys()) - 1)]
+def get_country_geometry(country):
 
-    geometry_x, geometry_y, ispolygon = c.get_country_geometry(random_country)
-    if ispolygon:
-        geometry_x = c.get_country_geometry(random_country)
+    test_geometry = list(fullGeometryData[country]['coordinates'])
+    test_type     = fullPolygonData[country]
 
-    total_x = []
-    total_y = []
-    total_z = []
+    geometry_x = []
+    geometry_y = []
 
-    if not ispolygon:
-        for j in range(len(geometry_x)):
-            coords = c.point_to_sphere(geometry_y[j], geometry_x[j])
-            total_x.append(coords[0])
-            total_z.append(coords[1])
-            total_y.append(coords[2])
+    polygons = []
 
-        ax.plot(total_x, total_y, total_z, color='black')
+    if test_type == 'Polygon':
+        for i in range(len(test_geometry[0])):
+            geometry_x.append(test_geometry[0][i][0])
+            geometry_y.append(test_geometry[0][i][1])
 
+        return geometry_x, geometry_y, False
     else:
-        geometry_x = geometry_x[0]
+        for j in range(len(test_geometry)):
+            for i in range(len(test_geometry[j])):
+                for k in range(len(test_geometry[j][i])):
+                    
+                    longitude = test_geometry[j][i][k][0]
+                    latitude  = test_geometry[j][i][k][1]
 
-        for j in range(len(geometry_x)):
-            t = len(geometry_x[j])
+                    geometry_x.append(longitude)
+                    geometry_y.append(latitude)
 
-            total_x = []
-            total_y = []
-            total_z = []
+                polygons.append(geometry_x)
+                polygons.append(geometry_y)
+                geometry_x = []
+                geometry_y = []
 
-            for count in range(int(t / 2)):
-                lat = geometry_x[j][count * 2]
-                lon = geometry_x[j][count * 2 + 1]
-                coords = c.point_to_sphere(lat, lon)
+    return polygons, None, True
 
-                total_x.append(coords[0])
-                total_z.append(coords[1])
-                total_y.append(coords[2])
+def to_radians(p):
+    return p * 3.14159265358797 / 180.0
 
-    ax.plot(total_x, total_y, total_z, color='black', label=random_country)
-    plt.legend(loc="upper left")
-    plt.show()
+def point_to_sphere(latitude, longitude):
+    y = math.sin(to_radians(latitude))
+    r = math.cos(to_radians(latitude))
+    x = math.sin(to_radians(longitude)) * r
+    z = -math.cos(to_radians(longitude)) * r
+
+    return [x, y, z]
