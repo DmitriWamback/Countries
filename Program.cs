@@ -229,7 +229,7 @@ namespace Countries {
                 CountryPolygonType[countryName.ToString()] = geometryType.ToString();
             }
 
-            projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(110), 1, 0.01f, 1000f);
+            projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(110), 1, 0.001f, 1000f);
             lookAt = Matrix4.LookAt(currentCountryPosition, new Vector3(0), Vector3.UnitY);
 
             string[] countriesToLoad = new string[] {
@@ -291,7 +291,7 @@ namespace Countries {
         {
             base.OnMouseWheel(e);
             globeZoom += e.OffsetY * 0.01f;
-            if (globeZoom < 1.05f) globeZoom = 1.05f;
+            if (globeZoom < 1.061f) globeZoom = 1.061f;
             currentCountryPosition = new Vector3(MathF.Sin(rotation.X) * MathF.Cos(rotation.Y) * globeZoom, MathF.Sin(rotation.Y) * globeZoom, MathF.Cos(rotation.X) * MathF.Cos(rotation.Y) * globeZoom);
         }
 
@@ -425,6 +425,9 @@ namespace Countries.Util {
 
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureParameterName.ClampToBorder);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureParameterName.ClampToBorder);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapR, (int)TextureParameterName.ClampToBorder);
 
                 GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, img.Width, img.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, img.Data);
                 GL.BindTexture(TextureTarget.Texture2D, 0);

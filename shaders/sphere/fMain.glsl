@@ -3,19 +3,24 @@
 out vec4 fragc;
 
 in vec3 normal;
-uniform vec3 cameraPosition;
 in vec2 uv;
+in vec3 fragp;
+
+uniform vec3 cameraPosition;
 
 uniform sampler2D surfaceTexture;
 uniform float time;
 
 void main() {
 
-    //fragc = vec4(uv, 0.0, 1.0);
-    vec3 cities = texture(surfaceTexture, uv).rgb;
-    float average = 0.2126 * cities.r + 0.7152 * cities.g + 0.0722 * cities.b;
-    vec3 color = average > 0.5 ? vec3(average * 0.9, average * 0.8, 0.0) : vec3(0.1);
-    color = average < time ? vec3(0.05) : color;
+    vec3 color = vec3(0.05);
+    vec3 lightPosition = vec3(1000);
+    vec3 lightDir = -normalize(fragp - lightPosition);
+    vec3 lightColor = vec3(0.8, 0.9, 0.6);
 
-    fragc = vec4(vec3(average), 1.0);
+    float diff = max(dot(normal, lightDir), 0.0);
+    vec3 diffuse = diff * lightColor;
+    vec3 albedo = diffuse + color;
+
+    fragc = vec4(albedo, 1.0);
 }

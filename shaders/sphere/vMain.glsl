@@ -8,6 +8,7 @@ uniform mat4 rotation;
 
 out vec3 normal;
 out vec2 uv;
+out vec3 fragp;
 
 uniform float time;
 
@@ -18,7 +19,7 @@ float rad(float a) {
 vec2 pointOnSphereUV(vec3 point) {
 
     vec3 p = normalize(point);
-    float longitude = atan(p.x, p.z) / (2 * 3.14159265358797) + 0.5 + 0.25;
+    float longitude = atan(p.x, p.z) / (2 * 3.14159265358797) + 0.5;
     float latitude  = asin(p.y) / 3.14159265358797 + 0.5;
 
     float pi = 3.14159265358797;
@@ -33,6 +34,7 @@ vec2 pointOnSphereUV(vec3 point) {
 void main() {
 
     normal = normalize(vertex);
+    fragp = vertex;
 
     vec2 outuv = pointOnSphereUV(vertex);
     uv = outuv;
