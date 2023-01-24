@@ -125,7 +125,10 @@ namespace Countries {
         {
             base.OnMouseWheel(e);
             globeZoom += e.OffsetY * 0.01f;
+
             if (globeZoom < 1.061f) globeZoom = 1.061f;
+            if (globeZoom > 1.5030011f) globeZoom = 1.5030011f;
+
             currentCountryPosition = new Vector3(MathF.Sin(rotation.X) * MathF.Cos(rotation.Y) * globeZoom, 
                                                  MathF.Sin(rotation.Y) * globeZoom, 
                                                  MathF.Cos(rotation.X) * MathF.Cos(rotation.Y) * globeZoom);
