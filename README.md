@@ -1,2 +1,4 @@
 # Countries
-<img width="1194" alt="Screen Shot 2023-01-22 at 9 05 09 PM" src="https://user-images.githubusercontent.com/56200546/213954656-0f0a20a2-96f1-4614-a2f8-469dbe8a1648.png">
+<img width="1434" alt="Screen Shot 2023-01-23 at 8 54 49 PM" src="https://user-images.githubusercontent.com/56200546/214197050-fc99e122-eb99-485a-8b0d-9076afee7539.png">
+<img width="1440" alt="Screen Shot 2023-01-23 at 8 55 10 PM" src="https://user-images.githubusercontent.com/56200546/214197072-f8a249b8-2373-4398-87ce-a7dee371935f.png">
+
