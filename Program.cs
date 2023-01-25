@@ -15,20 +15,21 @@ namespace Countries {
 
     class DevelopmentWindow: GameWindow {
 
-        List<Polygon> _countryPolygons = new List<Polygon>();
         Vector3 currentCountryPosition = new Vector3(0, 0, 2),
                 rotation = new Vector3(0);
 
-        public static Dictionary<string, JsonElement> CountryGeometry = new Dictionary<string, JsonElement>();
-        public static Dictionary<string, string> CountryPolygonType = new Dictionary<string, string>();
-        public List<string> debugCountryNames = new List<string>();
+        public struct GeoJson {
+            public Dictionary<string, JsonElement> Geometry = new Dictionary<string, JsonElement>();
+            public Dictionary<string, string> PolygonType   = new Dictionary<string, string>();
+            public JsonElement GeoDocument;
+            public List<Polygon> Polygons = new List<Polygon>();
+
+            public GeoJson() {}
+        }
+        public static GeoJson CountryGeoJson, CityGeoJson;
         float globeZoom = 2.24f, t = 0f;
 
-        Polygon[] countryPolygons = new Polygon[1];
-
-        JsonElement GeoDocument;
         Shader sphereShader, borderShader;
-
         Matrix4 projection, lookAt, rotationMatrix;
         Sphere debugSphere;
         Texture surfaceTexture;
@@ -40,40 +41,59 @@ namespace Countries {
 
             GL.Enable(EnableCap.ProgramPointSize);
 
-            var jsonFile = new StreamReader("src/resources/countries.geojson").ReadToEnd();
-            GeoDocument = JsonDocument.Parse(jsonFile).RootElement.GetProperty("features");
+            CountryGeoJson = new GeoJson();
+            CityGeoJson    = new GeoJson();
 
-            int length = GeoDocument.GetArrayLength();
+            CountryGeoJson.GeoDocument = JsonDocument.Parse(new StreamReader("src/resources/countries.geojson").ReadToEnd()).RootElement.GetProperty("features");
+            CityGeoJson.GeoDocument    = JsonDocument.Parse(new StreamReader("src/resources/cities.geojson").ReadToEnd()).RootElement.GetProperty("features");
+
             debugSphere = Utils.createSphere();
             surfaceTexture = new Texture("src/resources/earthsurface.jpeg");
 
             /*
-                Loading the geojson
+                Loading the country geojson
             */
-            
-            for (int i = 0; i < length; i++) {
-                JsonElement elem = GeoDocument[i];
+            for (int i = 0; i < CountryGeoJson.GeoDocument.GetArrayLength(); i++) {
+                JsonElement elem = CountryGeoJson.GeoDocument[i];
                 JsonElement countryName = elem.GetProperty("properties").GetProperty("ADMIN"),
                             countryGeometry = elem.GetProperty("geometry"),
                             geometryType    = elem.GetProperty("geometry").GetProperty("type");
-
-                            debugCountryNames.Add(countryName.ToString());
                 
-                CountryGeometry[countryName.ToString()] = countryGeometry;
-                CountryPolygonType[countryName.ToString()] = geometryType.ToString();
+                CountryGeoJson.Geometry[countryName.ToString()] = countryGeometry;
+                CountryGeoJson.PolygonType[countryName.ToString()] = geometryType.ToString();
             }
+
+            /*
+                Loading the city geojson
+            */
+            for (int i = 0; i < CityGeoJson.GeoDocument.GetArrayLength(); i++) {
+                JsonElement main = CityGeoJson.GeoDocument[i];
+                JsonElement cityName = main.GetProperty("properties").GetProperty("NAME"),
+                            cityGeometry = main.GetProperty("geometry");
+
+                CityGeoJson.Geometry[cityName.ToString()] = cityGeometry;
+            }
+
 
             projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(110), 1, 0.001f, 1000f);
             lookAt = Matrix4.LookAt(currentCountryPosition, new Vector3(0), Vector3.UnitY);
 
 
             // Loading country borders
-            foreach (string str in CountryGeometry.Keys) {
-                countryPolygons = Polygon.LoadCountry(str);
-                foreach(Polygon p in countryPolygons) {
-                    _countryPolygons.Add(p);
+            foreach (string str in CountryGeoJson.Geometry.Keys) {
+                Polygon[] loadedPolygons = Polygon.LoadCountry(str);
+                foreach(Polygon p in loadedPolygons) {
+                    CountryGeoJson.Polygons.Add(p);
                 }
             }
+            Console.WriteLine("Loaded Countries");
+            foreach (string name in CityGeoJson.Geometry.Keys) {
+                Polygon[] loadedCities = Polygon.LoadCity(name);
+                foreach(Polygon city in loadedCities) {
+                    CityGeoJson.Polygons.Add(city);
+                }
+            }
+
             sphereShader = new Shader("sphere");
             borderShader = new Shader("borders");
 
@@ -88,23 +108,7 @@ namespace Countries {
         protected override void OnKeyDown(KeyboardKeyEventArgs e)
         {
             base.OnKeyDown(e);
-            string[] countryNames = CountryPolygonType.Keys.ToArray();
-
             if (e.Key == Keys.D) {t += 0.01f; Console.WriteLine(t);}
-            if (e.Key != Keys.E) return;
-
-            try {
-                int random = new Random().Next(0, debugCountryNames.Count);
-
-                string countryName = debugCountryNames[random];
-                debugCountryNames.Remove(debugCountryNames[random]);
-
-                Polygon[] polygons = Polygon.LoadCountry(countryName);
-                foreach(Polygon polygon in polygons) {
-                    _countryPolygons.Add(polygon);
-                }
-                Console.WriteLine(countryName);
-            } catch(Exception exce) {}
         }
         protected override void OnMouseMove(MouseMoveEventArgs e) {
             base.OnMouseMove(e);
@@ -152,8 +156,14 @@ namespace Countries {
             borderShader.SetMatrix4("rotation", rotationMatrix);
             borderShader.SetVector3("cameraPosition", currentCountryPosition);
 
-            foreach (Polygon polygon in _countryPolygons) {
-                polygon.Render();
+            borderShader.SetVector3("color", new Vector3(1));
+            foreach (Polygon polygon in CountryGeoJson.Polygons) {
+                polygon.Render(PrimitiveType.LineLoop);
+            }
+
+            borderShader.SetVector3("color", new Vector3(1.0f, 1.0f, 0f));
+            foreach(Polygon city in CityGeoJson.Polygons) {
+                city.Render(PrimitiveType.TriangleFan);
             }
 
             surfaceTexture.Bind();

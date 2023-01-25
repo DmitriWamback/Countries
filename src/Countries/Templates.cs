@@ -15,8 +15,8 @@ namespace Countries.Templates {
 
         public static Polygon[] LoadCountry(string countryName) {
             
-            JsonElement countryCoordinates = DevelopmentWindow.CountryGeometry[countryName].GetProperty("coordinates");        
-            string polygonType = DevelopmentWindow.CountryPolygonType[countryName];
+            JsonElement countryCoordinates = DevelopmentWindow.CountryGeoJson.Geometry[countryName].GetProperty("coordinates");        
+            string polygonType = DevelopmentWindow.CountryGeoJson.PolygonType[countryName];
 
             float[] Longitude, Latitude;
             Longitude = new float[countryCoordinates[0].GetArrayLength()];
@@ -48,6 +48,23 @@ namespace Countries.Templates {
                 polygons.Add(new Polygon(MLongitude.ToArray(), MLatitude.ToArray()));
                 }
             }
+            return polygons.ToArray();
+        }
+
+        public static Polygon[] LoadCity(string cityName) {
+
+            JsonElement cityCoordinates = DevelopmentWindow.CityGeoJson.Geometry[cityName].GetProperty("coordinates");
+            List<Polygon> polygons = new List<Polygon>();
+
+            float[] Longitude = new float[cityCoordinates[0].GetArrayLength()], 
+                    Latitude  = new float[cityCoordinates[0].GetArrayLength()];
+
+            for (int i = 0; i < cityCoordinates[0].GetArrayLength(); i++) {
+                Longitude[i] = float.Parse(cityCoordinates[0][i][0].ToString());
+                Latitude[i] = float.Parse(cityCoordinates[0][i][1].ToString());
+            }
+            polygons.Add(new Polygon(Longitude, Latitude));
+
             return polygons.ToArray();
         }
 
@@ -103,11 +120,11 @@ namespace Countries.Templates {
             return new Vector3(z, y, x);
         }
 
-        public void Render() {
+        public void Render(PrimitiveType type) {
 
             GL.BindVertexArray(vertexArrayObject);
-            GL.DrawArrays(PrimitiveType.Points, 0, CombinedLongLat.Length / 3);
-            GL.DrawArrays(PrimitiveType.LineLoop, 0, CombinedLongLat.Length / 3);
+            //GL.DrawArrays(PrimitiveType.Points, 0, CombinedLongLat.Length / 3);
+            GL.DrawArrays(type, 0, CombinedLongLat.Length / 3);
         }
     }
 
