@@ -3,7 +3,6 @@
 <img width="1440" alt="Screen Shot 2023-01-23 at 8 55 10 PM" src="https://user-images.githubusercontent.com/56200546/214197072-f8a249b8-2373-4398-87ce-a7dee371935f.png">
 
 ## Packages
-<code> dotnet add package OpenTK
-dotnet add package RestSharp
-dotnet add package StbImageSharp
-</code>
+<code>dotnet add package OpenTK</code>
+<code>dotnet add package RestSharp</code>
+<code>dotnet add package StbImageSharp</code>
