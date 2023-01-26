@@ -5,11 +5,11 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
 using System.Text.Json;
-using System.Runtime.InteropServices;
 
 using Countries;
 using Countries.Templates;
 using Countries.Util;
+using System.Net.Http;
 
 namespace Countries {
 
@@ -54,7 +54,7 @@ namespace Countries {
             Planes = new Points();
             Ships  = new Points();
 
-            Planes.Coordinates = Http.GetCoordinates("https://opensky-network.org/api/states/all", Http.TrackType.OpenskyAPI);
+            Task.Run(() => UpdatePlanes());
 
             Planes.Color = new Vector3(1, 0, 0);
             Ships.Color  = new Vector3(0, 1, 0);
@@ -152,6 +152,17 @@ namespace Countries {
                                                  MathF.Cos(rotation.X) * MathF.Cos(rotation.Y) * globeZoom);
         }
 
+        bool UpdatePlanesFlag = false;
+
+        public async void UpdatePlanes() {
+            
+            try {
+                HttpClient client = new HttpClient();
+                string response = await client.GetStringAsync("https://opensky-network.org/api/states/all");
+                Planes.Coordinates = Http.GetCoordinatesFromJson(response, Http.TrackType.OpenskyAPI);
+            } catch(Exception e) { Console.WriteLine("OpenSky too many requests"); }
+        }
+
         protected override void OnUpdateFrame(FrameEventArgs args) {
             
             string estTimeZone = TimeZoneInfo.ConvertTimeToUtc(DateTime.Now).ToString("hh:mm:ss");
@@ -159,9 +170,14 @@ namespace Countries {
             float hour = float.Parse(times[0]) * 60f;
             float minute = float.Parse(times[1]);
             float seconds = float.Parse(times[2]) / 60f;
+            
+            if ((int)(seconds * 60) % 30 == 1 && !UpdatePlanesFlag) {
+                Task.Run(() => UpdatePlanes());
+                UpdatePlanesFlag = true;
+            }
+            if ((int)(seconds * 60) % 30 == 0) UpdatePlanesFlag = false;
 
             float time = (hour + minute + seconds) / 60f / 24f;
-            Console.WriteLine(time);
             float rotation = time * 360f + 135f;
 
             base.OnUpdateFrame(args);
@@ -195,7 +211,9 @@ namespace Countries {
             }
             borderShader.SetFloat("pointSize", 4);
             borderShader.SetVector3("color", Planes.Color);
-            Planes.Coordinates.Render(PrimitiveType.Points);
+            try {
+                Planes.Coordinates.Render(PrimitiveType.Points);
+            } catch(Exception e) {}
 
             surfaceTexture.Bind();
             sphereShader.Use();

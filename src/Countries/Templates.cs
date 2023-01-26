@@ -122,9 +122,11 @@ namespace Countries.Templates {
 
         public void Render(PrimitiveType type) {
 
-            GL.BindVertexArray(vertexArrayObject);
-            //GL.DrawArrays(PrimitiveType.Points, 0, CombinedLongLat.Length / 3);
-            GL.DrawArrays(type, 0, CombinedLongLat.Length / 3);
+            try {
+                GL.BindVertexArray(vertexArrayObject);
+                //GL.DrawArrays(PrimitiveType.Points, 0, CombinedLongLat.Length / 3);
+                GL.DrawArrays(type, 0, CombinedLongLat.Length / 3);
+            } catch(Exception e) {}
         }
     }
 

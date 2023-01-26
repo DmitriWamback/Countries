@@ -139,12 +139,16 @@ namespace Countries.Util {
             RestClient client = new RestClient();
             RestRequest request = new RestRequest(httpUrl);
             RestResponse response = client.Get(request);
+            
+            return GetCoordinatesFromJson(response.Content!, TrackType.OpenskyAPI);
+        }
+
+        public static Polygon GetCoordinatesFromJson(string json, TrackType type) {
+
+            JsonElement main = JsonDocument.Parse(json).RootElement;
 
             Polygon coordinates = new Polygon(new float[0], new float[0]);
             List<float> latitude = new List<float>(), longitude = new List<float>();
-
-            JsonElement main = JsonDocument.Parse(response.Content!).RootElement;
-
 
             if (type == TrackType.OpenskyAPI) {
                 
