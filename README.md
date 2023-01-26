@@ -4,6 +4,6 @@
 
 ## Packages
 <code>
-<p>dotnet add package OpenTK</p>
-<p>dotnet add package StbImageSharp</p>
+dotnet add package OpenTK
+dotnet add package StbImageSharp
 </code>
