@@ -7,11 +7,12 @@ uniform mat4 lookAt;
 uniform mat4 rotation;
 
 out vec3 normal;
+uniform float pointSize = 1;
 
 void main() {
 
     normal = normalize(vertex);
 
-    gl_Position = projection * lookAt * vec4(vertex, 1.0);
-    gl_PointSize = 1;
+    gl_Position = projection * lookAt * rotation * vec4(vertex, 1.0);
+    gl_PointSize = pointSize;
 }

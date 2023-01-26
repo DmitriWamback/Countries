@@ -15,7 +15,7 @@ namespace Countries {
 
     class DevelopmentWindow: GameWindow {
 
-        Vector3 currentCountryPosition = new Vector3(0, 0, 2),
+        Vector3 currentCountryPosition = new Vector3(0, 0, 1.5030011f),
                 rotation = new Vector3(0);
 
         public struct GeoJson {
@@ -26,8 +26,15 @@ namespace Countries {
 
             public GeoJson() {}
         }
+        public struct Points {
+            public Vector3 Color;
+            public Polygon Coordinates;
+        }
+
         public static GeoJson CountryGeoJson, CityGeoJson;
-        float globeZoom = 2.24f, t = 0f;
+        public static Points Planes, Ships;
+
+        float globeZoom = 1.5030011f, t = 0f;
 
         Shader sphereShader, borderShader;
         Matrix4 projection, lookAt, rotationMatrix;
@@ -43,6 +50,14 @@ namespace Countries {
 
             CountryGeoJson = new GeoJson();
             CityGeoJson    = new GeoJson();
+
+            Planes = new Points();
+            Ships  = new Points();
+
+            Planes.Coordinates = Http.GetCoordinates("https://opensky-network.org/api/states/all", Http.TrackType.OpenskyAPI);
+
+            Planes.Color = new Vector3(1, 0, 0);
+            Ships.Color  = new Vector3(0, 1, 0);
 
             CountryGeoJson.GeoDocument = JsonDocument.Parse(new StreamReader("src/resources/countries.geojson").ReadToEnd()).RootElement.GetProperty("features");
             CityGeoJson.GeoDocument    = JsonDocument.Parse(new StreamReader("src/resources/cities.geojson").ReadToEnd()).RootElement.GetProperty("features");
@@ -78,7 +93,6 @@ namespace Countries {
             projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(110), 1, 0.001f, 1000f);
             lookAt = Matrix4.LookAt(currentCountryPosition, new Vector3(0), Vector3.UnitY);
 
-
             // Loading country borders
             foreach (string str in CountryGeoJson.Geometry.Keys) {
                 Polygon[] loadedPolygons = Polygon.LoadCountry(str);
@@ -108,7 +122,7 @@ namespace Countries {
         protected override void OnKeyDown(KeyboardKeyEventArgs e)
         {
             base.OnKeyDown(e);
-            if (e.Key == Keys.D) {t += 0.01f; Console.WriteLine(t);}
+            if (e.Key == Keys.D) {t -= 0.001f; Console.WriteLine(t);}
         }
         protected override void OnMouseMove(MouseMoveEventArgs e) {
             base.OnMouseMove(e);
@@ -130,7 +144,7 @@ namespace Countries {
             base.OnMouseWheel(e);
             globeZoom += e.OffsetY * 0.01f;
 
-            if (globeZoom < 1.061f) globeZoom = 1.061f;
+            if (globeZoom < 1.061f)     globeZoom = 1.061f;
             if (globeZoom > 1.5030011f) globeZoom = 1.5030011f;
 
             currentCountryPosition = new Vector3(MathF.Sin(rotation.X) * MathF.Cos(rotation.Y) * globeZoom, 
@@ -139,6 +153,17 @@ namespace Countries {
         }
 
         protected override void OnUpdateFrame(FrameEventArgs args) {
+            
+            string estTimeZone = TimeZoneInfo.ConvertTimeToUtc(DateTime.Now).ToString("hh:mm:ss");
+            string[] times = estTimeZone.Split(":");
+            float hour = float.Parse(times[0]) * 60f;
+            float minute = float.Parse(times[1]);
+            float seconds = float.Parse(times[2]) / 60f;
+
+            float time = (hour + minute + seconds) / 60f / 24f;
+            Console.WriteLine(time);
+            float rotation = time * 360f + 135f;
+
             base.OnUpdateFrame(args);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -148,6 +173,9 @@ namespace Countries {
             GL.Viewport(0, -Math.Abs(width - height) / 2, width, width);
 
             GL.ClearColor(0, 0, 0, 1);
+
+            t -= 0.0001f;
+            rotationMatrix = GeoMath.EulerRotation(new Vector3(0, -rotation * 3.14159265358797f / 180f, 0));
 
             lookAt = Matrix4.LookAt(currentCountryPosition, new Vector3(0), Vector3.UnitY);
             borderShader.Use();
@@ -165,6 +193,9 @@ namespace Countries {
             foreach(Polygon city in CityGeoJson.Polygons) {
                 city.Render(PrimitiveType.TriangleFan);
             }
+            borderShader.SetFloat("pointSize", 4);
+            borderShader.SetVector3("color", Planes.Color);
+            Planes.Coordinates.Render(PrimitiveType.Points);
 
             surfaceTexture.Bind();
             sphereShader.Use();

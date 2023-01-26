@@ -68,15 +68,15 @@ namespace Countries.Templates {
             return polygons.ToArray();
         }
 
-        public Polygon(float[] longitude, float[] latitude) {
+        public Polygon(float[] longitude, float[] latitude, float height = 1) {
             Longitude = longitude;
             Latitude = latitude;
             CombinedLongLat = new float[Longitude.Length * 3];
 
-            CombineCoordinates();
+            CombineCoordinates(height);
         }
 
-        private void CombineCoordinates() {
+        private void CombineCoordinates(float height) {
 
             float maxLongitude = 0, maxLatitude = 0;
             for (int i = 0; i < Longitude.Length; i++) {
@@ -91,9 +91,9 @@ namespace Countries.Templates {
 
                 Vector3 pointOnSphere = PointToSphere(Latitude[i], Longitude[i]);
 
-                CombinedLongLat[i * 3]     = (pointOnSphere.X);
-                CombinedLongLat[i * 3 + 1] = (pointOnSphere.Y);
-                CombinedLongLat[i * 3 + 2] = (pointOnSphere.Z);
+                CombinedLongLat[i * 3]     = (pointOnSphere.X) * height;
+                CombinedLongLat[i * 3 + 1] = (pointOnSphere.Y) * height;
+                CombinedLongLat[i * 3 + 2] = (pointOnSphere.Z) * height;
             }
 
             /* 
