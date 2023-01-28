@@ -107,7 +107,7 @@ namespace Countries {
                 }
             }
 
-            Planes.Coordinates.Initialize();
+            if(Planes.Coordinates != null) Planes.Coordinates.Initialize();
 
             sphereShader = new Shader("sphere");
             borderShader = new Shader("borders");
@@ -178,7 +178,7 @@ namespace Countries {
                 UpdatePlanesFlag = true;
             }
             if ((int)(seconds * 60) % 30 == 0) UpdatePlanesFlag = false;
-            Planes.Coordinates.Initialize();
+            if (Planes.Coordinates != null) Planes.Coordinates.Initialize();
 
             float time = AMPM == "AM" ? (hour + minute + seconds + 12f * 60f) / 60f / 24f : (hour + minute + seconds) / 60f / 24f;
             float rotation = time * 360f + 135f;
