@@ -159,13 +159,26 @@ namespace Countries.Util {
                     
                     try {
                         latitude.Add(float.Parse(main.GetProperty("states")[i][5].ToString()));
-                        longitude.Add(float.Parse(main.GetProperty("states")[i][6].ToString()));
+                        longitude.Add(float.Parse(main.GetProperty("states")[i][6].ToString()) - Polygon.longitudeOffset);
                     } catch(Exception e){}
                 }
                 coordinates = new Polygon(latitude.ToArray(), longitude.ToArray(), height);
             }
 
             return coordinates;
+        }
+
+        public static async void GetISS() {
+
+            HttpClient client = new HttpClient();
+            string response = await client.GetStringAsync("http://api.open-notify.org/iss-now.json");
+            
+            JsonElement main = JsonDocument.Parse(response).RootElement;
+            JsonElement position = main.GetProperty("iss_position");
+            float[] latitude  = { float.Parse(position.GetProperty("latitude").ToString()) },
+                    longitude = { float.Parse(position.GetProperty("longitude").ToString()) };
+
+            DevelopmentWindow.ISS = new Polygon(longitude, latitude, 1.001f);
         }
     }
 }

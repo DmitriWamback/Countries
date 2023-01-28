@@ -153,7 +153,8 @@ namespace Countries {
                                                  MathF.Cos(rotation.X) * MathF.Cos(rotation.Y) * globeZoom);
         }
 
-        bool UpdatePlanesFlag = false;
+        bool UpdatePlanesFlag = false, UpdateISSFlag = false;
+        public static Polygon ISS;
 
         public async void UpdatePlanes() {
             
@@ -172,13 +173,22 @@ namespace Countries {
             float minute = float.Parse(times[1]);
             float seconds = float.Parse(times[2]) / 60f;
             string AMPM = times[3];
-            
-            if ((int)(seconds * 60) % 30 == 1 && !UpdatePlanesFlag) {
+
+            if (seconds * 60 % 2 == 1 && !UpdateISSFlag) {
+                Task.Run(() => Http.GetISS());
+                UpdateISSFlag = true;
+            }
+
+            if (seconds * 60 % 30 == 1 && !UpdatePlanesFlag) {
                 Task.Run(() => UpdatePlanes());
                 UpdatePlanesFlag = true;
             }
+
             if ((int)(seconds * 60) % 30 == 0) UpdatePlanesFlag = false;
+            if (seconds * 60 % 2 == 0) UpdateISSFlag = false;
+
             if (Planes.Coordinates != null) Planes.Coordinates.Initialize();
+            if (ISS != null) ISS.Initialize();
 
             float time = AMPM == "AM" ? (hour + minute + seconds + 12f * 60f) / 60f / 24f : (hour + minute + seconds) / 60f / 24f;
             float rotation = time * 360f - 45f;
@@ -216,6 +226,12 @@ namespace Countries {
             borderShader.SetVector3("color", Planes.Color);
             try {
                 Planes.Coordinates.Render(PrimitiveType.Points);
+            } catch(Exception e) {}
+
+            borderShader.SetFloat("pointSize", 10);
+            borderShader.SetVector3("color", Ships.Color);
+            try {
+                ISS.Render(PrimitiveType.Points);
             } catch(Exception e) {}
 
             surfaceTexture.Bind();

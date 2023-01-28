@@ -12,7 +12,7 @@ namespace Countries.Templates {
 
         public float[] Longitude, Latitude, CombinedLongLat;
         int vertexBufferObject, vertexArrayObject;
-        static float longitudeOffset = -90f;
+        public static float longitudeOffset = -90f;
 
         public static Polygon[] LoadCountry(string countryName) {
 
