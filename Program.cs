@@ -166,11 +166,12 @@ namespace Countries {
 
         protected override void OnUpdateFrame(FrameEventArgs args) {
             
-            string estTimeZone = TimeZoneInfo.ConvertTimeToUtc(DateTime.Now).ToString("hh:mm:ss");
+            string estTimeZone = TimeZoneInfo.ConvertTimeToUtc(DateTime.Now).ToString("hh:mm:ss:tt");
             string[] times = estTimeZone.Split(":");
             float hour = float.Parse(times[0]) * 60f;
             float minute = float.Parse(times[1]);
             float seconds = float.Parse(times[2]) / 60f;
+            string AMPM = times[3];
             
             if ((int)(seconds * 60) % 30 == 1 && !UpdatePlanesFlag) {
                 Task.Run(() => UpdatePlanes());
@@ -179,13 +180,13 @@ namespace Countries {
             if ((int)(seconds * 60) % 30 == 0) UpdatePlanesFlag = false;
             Planes.Coordinates.Initialize();
 
-            float time = (hour + minute + seconds) / 60f / 24f;
+            float time = AMPM == "AM" ? (hour + minute + seconds + 12f * 60f) / 60f / 24f : (hour + minute + seconds) / 60f / 24f;
             float rotation = time * 360f + 135f;
 
             base.OnUpdateFrame(args);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            int width = this.ClientSize.X, 
+            int width  = this.ClientSize.X, 
                 height = this.ClientSize.Y;
             
             GL.Viewport(0, -Math.Abs(width - height) / 2, width, width);
