@@ -19,7 +19,7 @@ float rad(float a) {
 vec2 pointOnSphereUV(vec3 point) {
 
     vec3 p = normalize(point);
-    float longitude = atan(p.x, p.z) / (2 * 3.14159265358797) + 0.5 + 0.25;
+    float longitude = atan(p.x, p.z) / (2 * 3.14159265358797) + 0.5;
     float latitude  = asin(p.y) / 3.14159265358797 + 0.5;
 
     float pi = 3.14159265358797;
@@ -33,12 +33,12 @@ vec2 pointOnSphereUV(vec3 point) {
 
 void main() {
 
-    normal = normalize(vertex);
+    normal = normalize(mat3(transpose(inverse(rotation))) * vertex);
     fragp = vertex;
 
     vec2 outuv = pointOnSphereUV(fragp);
     uv = outuv;
 
-    gl_Position = projection * lookAt * vec4(vertex, 1.0);
+    gl_Position = projection * lookAt * rotation * vec4(vertex, 1.0);
     gl_PointSize = 2;
 }

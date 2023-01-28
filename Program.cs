@@ -34,7 +34,7 @@ namespace Countries {
         public static GeoJson CountryGeoJson, CityGeoJson;
         public static Points Planes, Ships;
 
-        float globeZoom = 1.5030011f, t = 0f;
+        public static float globeZoom = 1.5030011f, t = 0f;
 
         Shader sphereShader, borderShader;
         Matrix4 projection, lookAt, rotationMatrix;
@@ -181,7 +181,7 @@ namespace Countries {
             if (Planes.Coordinates != null) Planes.Coordinates.Initialize();
 
             float time = AMPM == "AM" ? (hour + minute + seconds + 12f * 60f) / 60f / 24f : (hour + minute + seconds) / 60f / 24f;
-            float rotation = time * 360f + 135f;
+            float rotation = time * 360f - 45f;
 
             base.OnUpdateFrame(args);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);

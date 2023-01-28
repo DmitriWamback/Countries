@@ -12,8 +12,10 @@ namespace Countries.Templates {
 
         public float[] Longitude, Latitude, CombinedLongLat;
         int vertexBufferObject, vertexArrayObject;
+        static float longitudeOffset = -90f;
 
         public static Polygon[] LoadCountry(string countryName) {
+
             
             JsonElement countryCoordinates = DevelopmentWindow.CountryGeoJson.Geometry[countryName].GetProperty("coordinates");        
             string polygonType = DevelopmentWindow.CountryGeoJson.PolygonType[countryName];
@@ -25,7 +27,7 @@ namespace Countries.Templates {
             if (polygonType == "Polygon") {
                 
                 for (int i = 0; i < Longitude.Length; i++) {
-                    Longitude[i] = float.Parse(countryCoordinates[0][i][0].ToString());
+                    Longitude[i] = float.Parse(countryCoordinates[0][i][0].ToString()) - longitudeOffset;
                     Latitude[i]  = float.Parse(countryCoordinates[0][i][1].ToString());
                 }
                 Polygon p = new Polygon(Longitude, Latitude);
@@ -42,7 +44,7 @@ namespace Countries.Templates {
                 for (int k = 0; k < countryCoordinates[i][j].GetArrayLength(); k++) {
                     
                     float latitude = float.Parse(countryCoordinates[i][j][k][1].ToString());
-                    float longitude = float.Parse(countryCoordinates[i][j][k][0].ToString());
+                    float longitude = float.Parse(countryCoordinates[i][j][k][0].ToString()) - longitudeOffset;
 
                     MLatitude.Add(latitude);
                     MLongitude.Add(longitude);
@@ -66,7 +68,7 @@ namespace Countries.Templates {
                     Latitude  = new float[cityCoordinates[0].GetArrayLength()];
 
             for (int i = 0; i < cityCoordinates[0].GetArrayLength(); i++) {
-                Longitude[i] = float.Parse(cityCoordinates[0][i][0].ToString());
+                Longitude[i] = float.Parse(cityCoordinates[0][i][0].ToString()) - longitudeOffset;
                 Latitude[i] = float.Parse(cityCoordinates[0][i][1].ToString());
             }
             Polygon p = new Polygon(Longitude, Latitude);
