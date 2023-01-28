@@ -53,9 +53,7 @@ namespace Countries {
 
             Planes = new Points();
             Ships  = new Points();
-
-            Task.Run(() => UpdatePlanes());
-
+            
             Planes.Color = new Vector3(1, 0, 0);
             Ships.Color  = new Vector3(0, 1, 0);
 
@@ -64,6 +62,7 @@ namespace Countries {
 
             debugSphere = Utils.createSphere();
             surfaceTexture = new Texture("src/resources/earthsurface.jpeg");
+            Task.Run(() => UpdatePlanes());
 
             /*
                 Loading the country geojson
@@ -90,8 +89,8 @@ namespace Countries {
             }
 
 
-            projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(110), 1, 0.001f, 1000f);
-            lookAt = Matrix4.LookAt(currentCountryPosition, new Vector3(0), Vector3.UnitY);
+            projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(110f), 1, 0.001f, 1000f);
+            lookAt = Matrix4.LookAt(currentCountryPosition, new Vector3(0f), Vector3.UnitY);
 
             // Loading country borders
             foreach (string str in CountryGeoJson.Geometry.Keys) {
@@ -107,6 +106,8 @@ namespace Countries {
                     CityGeoJson.Polygons.Add(city);
                 }
             }
+
+            Planes.Coordinates.Initialize();
 
             sphereShader = new Shader("sphere");
             borderShader = new Shader("borders");
@@ -176,6 +177,7 @@ namespace Countries {
                 UpdatePlanesFlag = true;
             }
             if ((int)(seconds * 60) % 30 == 0) UpdatePlanesFlag = false;
+            Planes.Coordinates.Initialize();
 
             float time = (hour + minute + seconds) / 60f / 24f;
             float rotation = time * 360f + 135f;
@@ -234,6 +236,7 @@ namespace Countries {
 class Program {
 
     public static void Main() {
+
         GameWindowSettings gws = new GameWindowSettings();
         NativeWindowSettings nws = new NativeWindowSettings() {
             APIVersion  = new Version(4, 1),

@@ -28,7 +28,9 @@ namespace Countries.Templates {
                     Longitude[i] = float.Parse(countryCoordinates[0][i][0].ToString());
                     Latitude[i]  = float.Parse(countryCoordinates[0][i][1].ToString());
                 }
-                return new Polygon[] { new Polygon(Longitude, Latitude) };
+                Polygon p = new Polygon(Longitude, Latitude);
+                p.Initialize();
+                return new Polygon[] { p };
             }
             List<Polygon> polygons = new List<Polygon>();
 
@@ -45,7 +47,11 @@ namespace Countries.Templates {
                     MLatitude.Add(latitude);
                     MLongitude.Add(longitude);
                 }
-                polygons.Add(new Polygon(MLongitude.ToArray(), MLatitude.ToArray()));
+
+                Polygon p = new Polygon(MLongitude.ToArray(), MLatitude.ToArray());
+                p.Initialize();
+
+                polygons.Add(p);
                 }
             }
             return polygons.ToArray();
@@ -63,7 +69,10 @@ namespace Countries.Templates {
                 Longitude[i] = float.Parse(cityCoordinates[0][i][0].ToString());
                 Latitude[i] = float.Parse(cityCoordinates[0][i][1].ToString());
             }
-            polygons.Add(new Polygon(Longitude, Latitude));
+            Polygon p = new Polygon(Longitude, Latitude);
+            p.Initialize();
+
+            polygons.Add(p);
 
             return polygons.ToArray();
         }
@@ -74,6 +83,12 @@ namespace Countries.Templates {
             CombinedLongLat = new float[Longitude.Length * 3];
 
             CombineCoordinates(height);
+        }
+
+        public Polygon() {}
+
+        public static Polygon Empty() {
+            return new Polygon();
         }
 
         private void CombineCoordinates(float height) {
@@ -99,6 +114,13 @@ namespace Countries.Templates {
             /* 
                 Creating the vertex buffer
             */
+        }
+
+        bool isInitialized = false;
+
+        public void Initialize() {
+
+            if (isInitialized) return;
 
             vertexArrayObject = GL.GenVertexArray();
             vertexBufferObject = GL.GenBuffer();
@@ -109,7 +131,9 @@ namespace Countries.Templates {
             
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
             GL.EnableVertexAttribArray(0);
+            isInitialized = true;
         }
+
         public static Vector3 PointToSphere(float latitude, float longitude) {
 
             float y =  (float)Math.Sin(latitude * 3.14159265358797f / 180f);

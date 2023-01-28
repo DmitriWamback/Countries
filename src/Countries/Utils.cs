@@ -146,8 +146,8 @@ namespace Countries.Util {
         public static Polygon GetCoordinatesFromJson(string json, TrackType type) {
 
             JsonElement main = JsonDocument.Parse(json).RootElement;
-
-            Polygon coordinates = new Polygon(new float[0], new float[0]);
+        
+            Polygon coordinates = Polygon.Empty();
             List<float> latitude = new List<float>(), longitude = new List<float>();
 
             if (type == TrackType.OpenskyAPI) {
